@@ -8,6 +8,8 @@ verify_ssl = true
 [packages]
 boto3 = "*"
 ast = "*"
+json = "*"
+datetime = "*"
 
 [requires]
 python_version = "3.7"

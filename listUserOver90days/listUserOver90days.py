@@ -1,4 +1,7 @@
 import boto3
+from datetime import datetime
+import dateutil.tz
+import json
 import ast
 
 
@@ -6,18 +9,40 @@ import ast
 
 GROUP_LIST = "@@exclusiongroup"
 SERVICE_ACCOUNT_NAME = '@@serviceaccount'
-MASK_ACCESS_KEY_LENGTH = ast.literal_eval('maskaccesskeylength')
+#MASK_ACCESS_KEY_LENGTH = ast.literal_eval('@@maskaccesskeylength')
 # ==========================================================
 
 # Character length of an IAM Access Key
-ACCESS_KEY_LENGTH = 20
+#ACCESS_KEY_LENGTH = 20
 KEY_STATE_ACTIVE = "Active"
 KEY_STATE_INACTIVE = "Inactive"
 
 # ==========================================================
+#check to see if the MASK_ACCESS_KEY_LENGTH has been misconfigured
+#if MASK_ACCESS_KEY_LENGTH > ACCESS_KEY_LENGTH:
+#    MASK_ACCESS_KEY_LENGTH = 16
 
-def mask_access_key(access_key):
-    return access_key[-(ACCESS_KEY_LENGTH-MASK_ACCESS_KEY_LENGTH):].rjust(len(access_key), "*")
+# ==========================================================
+def tzutc():
+    return dateutil.tz.tzutc()
+
+
+def key_age(key_created_date):
+    tz_info = key_created_date.tzinfo
+    age = datetime.now(tz_info) - key_created_date
+
+    print('key age {0}'.format(age))
+
+    key_age_str = str(age)
+    if 'days' not in key_age_str:
+        return 0
+
+    days = int(key_age_str.split(',')[0].split(' ')[0])
+
+    return days
+
+#def mask_access_key(access_key):
+#    return access_key[-(ACCESS_KEY_LENGTH-MASK_ACCESS_KEY_LENGTH):].rjust(len(access_key), "*")
 
 #def lambda_handler(event, context):
     # print('*****************************')
@@ -39,9 +64,8 @@ for user in data['Users']:
     username = user['UserName']
     users[userid] = username
 
-
-users_report1 = []
-users_report2 = []
+    users_report1 = []
+    users_report2 = []
 
 
 for user in users:
@@ -78,15 +102,14 @@ for user in users:
         print(access_key)
         access_key_id = access_key['AccessKeyId']
 
-        masked_access_key_id = mask_access_key(access_key_id)
-
-        print('AccessKeyId {0}'.format(masked_access_key_id))
+#        masked_access_key_id = mask_access_key(access_key_id)
+#        print('AccessKeyId {0}'.format(masked_access_key_id))
 
         existing_key_status = access_key['Status']
         print(existing_key_status)
 
         key_created_date = access_key['CreateDate']
-        print('key_created_date {0}'.format(key_created_date))
+    #    print('key_created_date {0}'.format(key_created_date))
 
-#    age = key_age(key_created_date)
-#    print('age {0}'.foramt(age))
+        age = key_age(key_created_date)
+        print('age {0}'.foramt(age))
